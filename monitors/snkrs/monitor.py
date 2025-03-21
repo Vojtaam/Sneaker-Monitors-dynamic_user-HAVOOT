@@ -11,10 +11,9 @@ import time
 import json
 import logging
 import traceback
+import os
 
 import locations
-from config import WEBHOOK, LOCATION, LANGUAGE, ENABLE_FREE_PROXY, FREE_PROXY_LOCATION, DELAY, PROXY, KEYWORDS, USERNAME, AVATAR_URL, COLOUR
-
 
 logging.basicConfig(filename='snkrs-monitor.log', filemode='a', format='%(asctime)s - %(name)s - %(message)s', level=logging.DEBUG)
 
@@ -22,25 +21,42 @@ software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
 user_agent_rotator = UserAgent(software_names=software_names, hardware_type=hardware_type)
 
-if ENABLE_FREE_PROXY:  
+enable_free_proxy_str = os.environ.get("ENABLE_FREE_PROXY", "False")
+ENABLE_FREE_PROXY = enable_free_proxy_str.lower() == 'true'
+
+free_proxy_location_str = os.environ.get("FREE_PROXY_LOCATION", '["GB"]')
+try:
+    FREE_PROXY_LOCATION = json.loads(free_proxy_location_str)
+except json.JSONDecodeError:
+    FREE_PROXY_LOCATION = ["GB"]
+
+if ENABLE_FREE_PROXY:
     proxy_obj = FreeProxy(country_id=FREE_PROXY_LOCATION, rand=True)
 
-
-INSTOCK = []
+INSTOCK =
 
 def discord_webhook(title, description, url, thumbnail, price, style_code, sizes):
     """
     Sends a Discord webhook notification to the specified webhook URL
     """
+    webhook_url = os.environ.get("WEBHOOK")
+    username = os.environ.get("USERNAME", "Nike SNKRS")
+    avatar_url = os.environ.get("AVATAR_URL", "https://raw.githubusercontent.com/yasserqureshi1/Sneaker-Monitors/master/monitors/snkrs/logo.jpg")
+    colour_str = os.environ.get("COLOUR", "16777215")
+    try:
+        colour = int(colour_str, 16)
+    except ValueError:
+        colour = 16777215
+
     data = {
-        'username': USERNAME,
-        'avatar_url':  AVATAR_URL,
+        'username': username,
+        'avatar_url':  avatar_url,
         'embeds': [{
             'title': title,
             'description': description,
             'url': url,
             'thumbnail': {'url': thumbnail},
-            'color': int(COLOUR),
+            'color': colour,
             'footer': {'text': 'Developed by GitHub:yasserqureshi1'},
             'timestamp': str(datetime.utcnow()),
             'fields': [
@@ -50,8 +66,8 @@ def discord_webhook(title, description, url, thumbnail, price, style_code, sizes
             ]
         }]
     }
-    
-    result = rq.post(WEBHOOK, data=json.dumps(data), headers={"Content-Type": "application/json"})
+
+    result = rq.post(webhook_url, data=json.dumps(data), headers={"Content-Type": "application/json"})
 
     try:
         result.raise_for_status()
@@ -75,31 +91,45 @@ def monitor():
     start = 1
 
     # Initialising proxy and headers
+    proxy_list_str = os.environ.get("PROXY", '')
+    try:
+        PROXY = json.loads(proxy_list_str)
+    except json.JSONDecodeError:
+        PROXY =
+
+    proxy_no = 0
     if ENABLE_FREE_PROXY:
         proxy = {'http': proxy_obj.get()}
-    elif PROXY != []:
-        proxy_no = 0
-        proxy = {} if PROXY == [] else {"http": PROXY[proxy_no], "https": PROXY[proxy_no]}
+    elif PROXY !=:
+        proxy = {} if PROXY ==else {"http": PROXY[proxy_no], "https": PROXY[proxy_no]}
     else:
         proxy = {}
     user_agent = user_agent_rotator.get_random_user_agent()
 
     while True:
-        # Makes request to site and stores products 
+        # Makes request to site and stores products
         try:
-            if LOCATION in locations.___standard_api___:
-                to_discord = locations.standard_api(INSTOCK, LOCATION, LANGUAGE, user_agent, proxy, KEYWORDS, start)
+            location = os.environ.get("LOCATION")
+            language = os.environ.get("LANGUAGE")
+            keywords_str = os.environ.get("KEYWORDS", '')
+            try:
+                KEYWORDS = json.loads(keywords_str)
+            except json.JSONDecodeError:
+                KEYWORDS =
 
-            elif LOCATION == 'CL':
-                to_discord = locations.chile(INSTOCK, LOCATION, LANGUAGE, user_agent, proxy, KEYWORDS, start)
+            if location in locations.___standard_api___:
+                to_discord = locations.standard_api(INSTOCK, location, language, user_agent, proxy, KEYWORDS, start)
 
-            elif LOCATION == 'BR':
-                to_discord = locations.brazil(INSTOCK, LOCATION, LANGUAGE, user_agent, proxy, KEYWORDS, start)
-            
+            elif location == 'CL':
+                to_discord = locations.chile(INSTOCK, location, language, user_agent, proxy, KEYWORDS, start)
+
+            elif location == 'BR':
+                to_discord = locations.brazil(INSTOCK, location, language, user_agent, proxy, KEYWORDS, start)
+
             else:
-                print(f'LOCATION "{LOCATION}" CURRENTLY NOT AVAILABLE. IF YOU BELIEVE THIS IS A MISTAKE PLEASE CREATE AN ISSUE ON GITHUB OR MESSAGE THE #issues CHANNEL IN DISCORD.')
+                print(f'LOCATION "{location}" CURRENTLY NOT AVAILABLE. IF YOU BELIEVE THIS IS A MISTAKE PLEASE CREATE AN ISSUE ON GITHUB OR MESSAGE THE #issues CHANNEL IN DISCORD.')
                 return
-            
+
             for product in to_discord:
                 discord_webhook(product['title'], product['description'], product['url'], product['thumbnail'], product['price'], product['style_code'], product['sizes'])
                 print(product['title'])
@@ -110,11 +140,11 @@ def monitor():
 
             # Rotates headers
             user_agent = user_agent_rotator.get_random_user_agent()
-            
+
             if ENABLE_FREE_PROXY:
                 proxy = {'http': proxy_obj.get()}
 
-            elif PROXY != []:
+            elif PROXY !=:
                 proxy_no = 0 if proxy_no == (len(PROXY)-1) else proxy_no + 1
                 proxy = {"http": PROXY[proxy_no], "https": PROXY[proxy_no]}
 
@@ -126,7 +156,13 @@ def monitor():
         start = 0
 
         # User set delay
-        time.sleep(float(DELAY))
+        delay_str = os.environ.get("DELAY", "5")
+        try:
+            delay = float(delay_str)
+        except ValueError:
+            print("Error: DELAY must be a number. Using default value 5.")
+            delay = 5.0
+        time.sleep(delay)
 
 if __name__ == '__main__':
     urllib3.disable_warnings()
