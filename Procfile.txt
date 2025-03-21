@@ -1,1 +1,1 @@
-web: cd monitors/snkrs && python monitor.py
+web: cd monitors/snkrs && ls && python monitor.py
