@@ -1,18 +1,18 @@
 # --------------------- WEBHOOK URL ---------------------
-WEBHOOK = "https://discordapp.com/api/webhooks/1352760322762604596/o8O8skYeS1uNGHy-PXatjERYy4mYhxHRf3yaxPoKV9Dgp7sj94cC-m_5b1sCmccHDknC"
+WEBHOOK = ""
 
 # --------------------- SNKRS DETAILS ---------------------
-LOCATION = "CZ"
-LANGUAGE = "cs"
+LOCATION = ""
+LANGUAGE = ""
 
 # --------------------- FREE PROXY ---------------------
 # A single or multiple locations can be added in the array (e.g. ["GB"] or ["GB", "US"])
-ENABLE_FREE_PROXY = False
-FREE_PROXY_LOCATION = ["GB"]
+ENABLE_FREE_PROXY = ""
+FREE_PROXY_LOCATION = ""
 
 # --------------------- DELAY ---------------------
 # Delay between site requests
-DELAY = 5
+DELAY = ""
 
 # --------------------- OPTIONAL PROXY ---------------------
 # Proxies must follow this format: "<proxy>:<port>" OR "<proxy_username>:<proxy_password>@<proxy_domain>:<port>")
@@ -25,6 +25,6 @@ PROXY = []
 KEYWORDS = []
 
 # --------------------- DISCORD BOT FEATURES ---------------------
-USERNAME = "Nike SNKRS"
-AVATAR_URL = "https://raw.githubusercontent.com/yasserqureshi1/Sneaker-Monitors/master/monitors/snkrs/logo.jpg"
-COLOUR = 16777215
+USERNAME = ""
+AVATAR_URL = ""
+COLOUR = ""
